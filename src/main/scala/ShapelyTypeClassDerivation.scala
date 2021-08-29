@@ -1,44 +1,54 @@
 import shapely._
 
-object TypeClassDerivation extends App {
-  trait Equal[A] {
-    def eq(a: A, b: A): Boolean
-  }
+object ShapelyTypeClassDerivation extends App {
+  trait Monoid[A]:
+    def empty: A
+    def combine(a: A, b: A): A
 
-  object Equal {
-    def apply[A](implicit ev: Equal[A]): Equal[A] = ev
+  object Monoid {
+    def apply[A](implicit ev: Monoid[A]): Monoid[A] = ev
 
-    def instance[A](bool: Boolean): Equal[A] =
-      (_: A, _: A) => bool
+    given Monoid[String] with
+      def empty: String = ""
+      def combine(a: String, b: String): String = a ++ b
 
-    implicit val eqString: Equal[String] = (a: String, b: String) => a == b
-    implicit val eqInt: Equal[Int]       = (a: Int, b: Int) => a == b
-    implicit val eqDouble: Equal[Double] = (a: Double, b: Double) => a == b
-    implicit val eqLong: Equal[Long]     = (a: Long, b: Long) => a == b
+    given Monoid[Int] with
+      def empty: Int = 0
+      def combine(a: Int, b: Int): Int = a + b
+
+    given Monoid[Double] with
+      def empty: Double = 0.0
+      def combine(a: Double, b: Double): Double = a + b
+
+    given Monoid[Long] with
+      def empty: Long = 0
+      def combine(a: Long, b: Long): Long = a + b
 
     // Equal has InvariantAp
-    implicit val eq: InvariantAp[Equal] = new InvariantAp[Equal] {
-      override def pure[A](a: A): Equal[A] =
-        instance(true)
+    given eq: InvariantAp[Monoid] = new InvariantAp[Monoid] {
+      override def product1[A, B](f: A => B)(g: B => A)(fa: Monoid[A]): Monoid[B] = new Monoid[B] {
+        override def empty: B = f(fa.empty)
+        override def combine(a: B, b: B): B = f(fa.combine(g(a), g(b)))
+      }
 
-      override def product1[A, B](f: A => B)(g: B => A)(fa: Equal[A]): Equal[B] =
-        (a: B, b: B) => {
-          val a1 = g(a)
-          val a2 = g(b)
-          fa.eq(a1, a2)
+      override def product2[A, B, C](f: (A, B) => C)(g: C => (A, B))(fa: Monoid[A], ga: Monoid[B]): Monoid[C] = {
+        new Monoid[C] {
+          override def empty: C = f(fa.empty, ga.empty)
+          override def combine(a: C, b: C): C = {
+            val (a1, b1) = g(a)
+            val (a2, b2) = g(b)
+            val ax = fa.combine(a1, a2)
+            val bx = ga.combine(b1, b2)
+            f(ax, bx)
+          }
         }
-
-      override def product2[A, B, C](f: (A, B) => C)(g: C => (A, B))(fa: Equal[A], ga: Equal[B]): Equal[C] =
-        (a: C, b: C) => {
-          val (a1, b1) = g(a)
-          val (a2, b2) = g(b)
-          fa.eq(a1, a2) && ga.eq(b1, b2)
-        }
+      }
     }
 
     // Derive any typeclass for Shapely
-    implicit def eqOfA[A, B](implicit ev: Shapely[A, B], ev2: Lazy[Equal, B]): Equal[A] = new Equal[A] {
-      override def eq(b1: A, b2: A) = ev2.instance.eq(ev.to(b1), ev.to(b2))
+    given eqOfA[A, B](using ev: Shapely[A, B], ev2: Lazy[Monoid, B]): Monoid[A] = new Monoid[A] {
+      override def empty: A = ev.from(ev2.instance.empty)
+      override def combine(b1: A, b2: A): A = ev.from(ev2.instance.combine(ev.to(b1), ev.to(b2)))
     }
   }
 
@@ -175,7 +185,7 @@ object TypeClassDerivation extends App {
   println(Shapely.fieldNamesOf[SixtyFields]())
 
   println(
-    Equal[SixtyFields].eq(
+    Monoid[SixtyFields].combine(
       SixtyFields(
         "sdsd",
         1.0,
