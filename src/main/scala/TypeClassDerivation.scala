@@ -42,7 +42,7 @@ object TypeClassDerivation extends App {
     }
   }
 
-  final case class Strings(
+  final case class SixtyFields(
     s11: String,
     s12: Double,
     s13: String,
@@ -106,8 +106,8 @@ object TypeClassDerivation extends App {
   )
 
   println(
-    Shapely.generic[Strings](
-      Strings(
+    Shapely.generic[SixtyFields](
+      SixtyFields(
         "sdsd",
         1.0,
         "s",
@@ -172,11 +172,11 @@ object TypeClassDerivation extends App {
     )
   )
 
-  println(Shapely.fieldNamesOf[Strings]())
+  println(Shapely.fieldNamesOf[SixtyFields]())
 
   println(
-    Equal[Strings].eq(
-      Strings(
+    Equal[SixtyFields].eq(
+      SixtyFields(
         "sdsd",
         1.0,
         "s",
@@ -238,7 +238,7 @@ object TypeClassDerivation extends App {
         "s",
         1
       ),
-      Strings(
+      SixtyFields(
         "sdsd",
         1.0,
         "s",
