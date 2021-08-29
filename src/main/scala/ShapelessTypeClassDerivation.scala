@@ -1,4 +1,4 @@
-import shapeless3.deriving.*
+// import shapeless3.deriving.*
 
 /**
  * Shapeless Monoid, fails for over 32 fields in case class with:
