@@ -1,2 +1,2 @@
 ## Shapely Testing
-Using locally published version of Sam's Shapely with a few minor additions such as extracting field names
+Using locally published version of Sam's Shapely with additional changes to support typeclass derivation using `Lazy` `InvariantAp` on generated generic shapes!
