@@ -6,5 +6,5 @@ scalaVersion := "3.0.1"
 
 libraryDependencies ++=
   Seq(
-    "com.fommil" % "shapely" % "0.1.3"
+    "com.fommil" % "shapely" % "0.1.4"
   )
