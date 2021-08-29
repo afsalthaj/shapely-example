@@ -8,7 +8,7 @@ object ShapelyTypeClassDerivation extends App {
   object Monoid {
     def apply[A](implicit ev: Monoid[A]): Monoid[A] = ev
 
-    given Monoid[String] with
+    given Monoid[String] with 
       def empty: String = ""
       def combine(a: String, b: String): String = a ++ b
 
